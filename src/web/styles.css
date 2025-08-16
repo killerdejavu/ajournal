@@ -1,0 +1,1190 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f8fafc;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.header {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    color: #2b6cb0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.header h1 i {
+    margin-right: 0.5rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Navigation */
+.nav {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.nav-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-tab {
+    background: none;
+    border: none;
+    padding: 1rem 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.nav-tab:hover {
+    color: #2b6cb0;
+}
+
+.nav-tab.active {
+    color: #2b6cb0;
+    border-bottom-color: #2b6cb0;
+}
+
+.nav-tab i {
+    margin-right: 0.5rem;
+}
+
+/* Main content */
+.main {
+    flex: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 100%;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.content-header h2 {
+    color: #1a202c;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Search box */
+.search-box {
+    position: relative;
+    width: 300px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: white;
+    font-size: 0.875rem;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #2b6cb0;
+    box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+/* Journals layout */
+.journals-layout {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 2rem;
+    height: calc(100vh - 140px); /* Further reduced to give maximum space */
+    min-height: 600px;
+}
+
+.journals-list {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.journal-viewer {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #64748b;
+}
+
+.loading i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Journals container - scrollable */
+#journals-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#journals-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#journals-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#journals-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+#journals-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+#journals-loading {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+/* Journal list items */
+.journal-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f7fafc;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.journal-item:hover {
+    background: #f7fafc;
+}
+
+.journal-item.active {
+    background: #ebf4ff;
+    border-left: 3px solid #2b6cb0;
+}
+
+.journal-item:last-child {
+    border-bottom: none;
+}
+
+.journal-item-title {
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 0.25rem;
+}
+
+.journal-item-date {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.journal-item-preview {
+    font-size: 0.875rem;
+    color: #718096;
+    line-height: 1.4;
+}
+
+/* Viewer placeholder */
+.viewer-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 3rem;
+    color: #64748b;
+    text-align: center;
+}
+
+.viewer-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.viewer-placeholder h3 {
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+}
+
+/* Journal content */
+.journal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0; /* Important for flex children */
+}
+
+.journal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0; /* Don't shrink the header */
+}
+
+.journal-header h3 {
+    color: #1a202c;
+    font-size: 1.25rem;
+}
+
+.journal-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.journal-meta {
+    padding: 1rem 1.5rem;
+    background: #f7fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+    color: #64748b;
+    flex-shrink: 0; /* Don't shrink this section */
+}
+
+.journal-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Important for flex children to shrink properly */
+    height: 100%; /* Force explicit height */
+}
+
+.journal-markdown {
+    padding: 1.5rem;
+    flex: 1 1 0; /* Flex grow, shrink, basis 0 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0; /* Allow shrinking */
+    height: calc(100vh - 300px); /* Explicit height calculation */
+}
+
+.journal-markdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.journal-markdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.journal-markdown::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.journal-markdown::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.journal-editor {
+    width: 100%;
+    flex: 1 1 0; /* Flex grow, shrink, basis 0 */
+    border: none;
+    padding: 1.5rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+    min-height: 0; /* Allow shrinking */
+    height: calc(100vh - 300px); /* Explicit height calculation */
+}
+
+.journal-editor::-webkit-scrollbar {
+    width: 8px;
+}
+
+.journal-editor::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.journal-editor::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.journal-editor::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Enhanced Markdown styles - Obsidian-like */
+.journal-markdown {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+    line-height: 1.6;
+    color: #2e3440;
+}
+
+.journal-markdown h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.journal-markdown h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 2rem 0 1rem 0;
+    position: relative;
+}
+
+.journal-markdown h2::before {
+    content: '##';
+    color: #cbd5e0;
+    font-weight: normal;
+    margin-right: 0.5rem;
+}
+
+.journal-markdown h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin: 1.5rem 0 0.75rem 0;
+}
+
+.journal-markdown h3::before {
+    content: '###';
+    color: #cbd5e0;
+    font-weight: normal;
+    margin-right: 0.5rem;
+}
+
+.journal-markdown h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin: 1.25rem 0 0.5rem 0;
+}
+
+.journal-markdown p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+}
+
+.journal-markdown ul, .journal-markdown ol {
+    margin-bottom: 1rem;
+    padding-left: 0;
+}
+
+.journal-markdown ul {
+    list-style: none;
+}
+
+.journal-markdown ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.journal-markdown ul li::before {
+    content: '•';
+    color: #3182ce;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.journal-markdown ol {
+    counter-reset: list-counter;
+    list-style: none;
+}
+
+.journal-markdown ol li {
+    position: relative;
+    padding-left: 2rem;
+    margin-bottom: 0.5rem;
+    counter-increment: list-counter;
+}
+
+.journal-markdown ol li::before {
+    content: counter(list-counter) '.';
+    color: #3182ce;
+    font-weight: 600;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.journal-markdown strong, .journal-markdown b {
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.journal-markdown em, .journal-markdown i {
+    font-style: italic;
+    color: #4a5568;
+}
+
+.journal-markdown code {
+    background: #f7fafc;
+    color: #e53e3e;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.375rem;
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.875rem;
+    border: 1px solid #e2e8f0;
+}
+
+.journal-markdown pre {
+    background: #1a202c;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border: 1px solid #2d3748;
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.875rem;
+    line-height: 1.7;
+}
+
+.journal-markdown pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    border: none;
+    font-size: inherit;
+}
+
+.journal-markdown blockquote {
+    border-left: 4px solid #3182ce;
+    background: #f7fafc;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    color: #4a5568;
+    font-style: italic;
+    border-radius: 0 0.5rem 0.5rem 0;
+    position: relative;
+}
+
+.journal-markdown blockquote::before {
+    content: '"';
+    font-size: 2rem;
+    color: #3182ce;
+    position: absolute;
+    top: 0.5rem;
+    left: -0.25rem;
+}
+
+.journal-markdown a {
+    color: #3182ce;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.journal-markdown a:hover {
+    color: #2c5282;
+    border-bottom-color: #3182ce;
+}
+
+.journal-markdown a[href^="http"]::after {
+    content: ' ↗';
+    font-size: 0.75rem;
+    color: #718096;
+}
+
+.journal-markdown hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, #e2e8f0, #cbd5e0, #e2e8f0);
+    margin: 2rem 0;
+    border-radius: 1px;
+}
+
+.journal-markdown table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    background: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.journal-markdown th {
+    background: #f7fafc;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #2d3748;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.journal-markdown td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.journal-markdown tr:hover {
+    background: #f9fafb;
+}
+
+/* Special styling for journal-specific elements */
+.journal-markdown p:has(strong:first-child) {
+    margin-top: 1.5rem;
+}
+
+/* Time stamps and dates */
+.journal-markdown p:contains("**") strong {
+    color: #3182ce;
+}
+
+/* GitHub/JIRA links styling */
+.journal-markdown a[href*="github.com"] {
+    color: #6366f1;
+    background: #f0f9ff;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.journal-markdown a[href*="github.com"]:hover {
+    background: #dbeafe;
+}
+
+/* Manual notes section */
+.journal-markdown p:has(> em:only-child) {
+    color: #64748b;
+    font-style: italic;
+    border-left: 3px solid #e2e8f0;
+    padding-left: 1rem;
+    margin: 1rem 0;
+}
+
+/* Enhanced journal-specific styles */
+.journal-markdown li strong {
+    color: #1a202c;
+}
+
+/* Time stamps in activity logs */
+.journal-markdown p:contains("**") {
+    margin-bottom: 0.75rem;
+}
+
+/* Section dividers */
+.journal-markdown h2 + p {
+    margin-top: 0;
+}
+
+/* Activity sections styling */
+.journal-markdown h2:contains("Activities") {
+    color: #2b6cb0;
+}
+
+.journal-markdown h2:contains("Summary") {
+    color: #38a169;
+}
+
+.journal-markdown h2:contains("Metrics") {
+    color: #805ad5;
+}
+
+.journal-markdown h2:contains("Insights") {
+    color: #d69e2e;
+}
+
+/* Better spacing for activity entries */
+.journal-markdown p:has(strong:contains("**")) {
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-left: 3px solid #3182ce;
+    border-radius: 0 0.5rem 0.5rem 0;
+    margin: 0.5rem 0;
+}
+
+/* GitHub and JIRA activity styling */
+.journal-markdown p:contains("👁️"), 
+.journal-markdown p:contains("🔧"), 
+.journal-markdown p:contains("🎫") {
+    background: #f8fafc;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border-left: 3px solid #3182ce;
+    margin: 0.5rem 0;
+}
+
+/* Emoji spacing in activities */
+.journal-markdown p:contains("👁️")::first-line,
+.journal-markdown p:contains("🔧")::first-line,
+.journal-markdown p:contains("🎫")::first-line {
+    font-weight: 500;
+}
+
+/* Generated timestamp styling */
+.journal-markdown p:contains("Generated") {
+    color: #718096;
+    font-size: 0.875rem;
+    font-style: italic;
+    text-align: center;
+    margin: 2rem 0 1rem 0;
+    padding: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Status grid */
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.status-card {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+}
+
+.status-card h3 {
+    color: #1a202c;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.status-card h3 i {
+    margin-right: 0.5rem;
+    color: #2b6cb0;
+}
+
+/* Setup sections */
+.setup-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.setup-section {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+}
+
+.setup-section h3 {
+    color: #1a202c;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.setup-section h3 i {
+    margin-right: 0.5rem;
+    color: #2b6cb0;
+}
+
+.env-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.env-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: #f7fafc;
+}
+
+.env-item.configured {
+    background: #f0fff4;
+    color: #22543d;
+}
+
+.env-item.missing {
+    background: #fff5f5;
+    color: #c53030;
+}
+
+.env-item i {
+    font-size: 0.875rem;
+}
+
+.setup-help {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f7fafc;
+    border-radius: 0.5rem;
+}
+
+.setup-help h4 {
+    margin-bottom: 0.5rem;
+    color: #1a202c;
+}
+
+.setup-help ul {
+    padding-left: 1rem;
+}
+
+.setup-help li {
+    margin-bottom: 0.5rem;
+}
+
+.setup-help code {
+    background: #e2e8f0;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875rem;
+}
+
+/* Config editor */
+.config-editor {
+    margin-top: 1rem;
+}
+
+.config-textarea {
+    width: 100%;
+    height: 400px;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.config-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-small {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+}
+
+.btn-primary {
+    background: #2b6cb0;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #2c5282;
+}
+
+.btn-success {
+    background: #38a169;
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #2f855a;
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #cbd5e0;
+}
+
+.btn-danger {
+    background: #e53e3e;
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #c53030;
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90%;
+    overflow: hidden;
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+.modal-content.large {
+    max-width: 800px;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    color: #1a202c;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #64748b;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.close:hover {
+    background: #f7fafc;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Form elements */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #2b6cb0;
+    box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+}
+
+.form-group input[type="radio"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+.radio-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.date-range-inputs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.date-input-group {
+    flex: 1;
+}
+
+.date-input-group label {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.form-help {
+    color: #64748b;
+    font-size: 0.8125rem;
+    font-style: italic;
+}
+
+/* Advanced sections */
+.advanced-section {
+    margin-bottom: 1rem;
+}
+
+.advanced-section h4 {
+    color: #1a202c;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.advanced-section h4 i {
+    margin-right: 0.5rem;
+    color: #2b6cb0;
+}
+
+.advanced-section p {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+/* Output areas */
+.sync-output,
+.generate-output,
+.run-output,
+.advanced-output {
+    background: #1a202c;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .journals-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: calc(100vh - 180px);
+    }
+    
+    .journals-list {
+        height: 300px;
+        min-height: 300px;
+    }
+    
+    .journal-viewer {
+        height: calc(100vh - 500px);
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .content-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .date-range-inputs {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .radio-group {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Utility classes */
+.text-success {
+    color: #38a169;
+}
+
+.text-error {
+    color: #e53e3e;
+}
+
+.text-muted {
+    color: #64748b;
+}
+
+.hidden {
+    display: none !important;
+}

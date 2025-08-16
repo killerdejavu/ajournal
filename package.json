@@ -1,0 +1,68 @@
+{
+  "name": "ajournal",
+  "version": "1.0.0",
+  "description": "Intelligent work tracking system that automatically generates professional daily, weekly, monthly, and quarterly work journals by integrating with Slack, GitHub, Google Calendar, and JIRA using AI.",
+  "main": "src/cli.js",
+  "type": "module",
+  "bin": {
+    "ajournal": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js run",
+    "sync": "node src/cli.js sync",
+    "run": "node src/cli.js run",
+    "generate": "node src/cli.js generate",
+    "weekly": "node src/cli.js weekly-report",
+    "monthly": "node src/cli.js monthly-report",
+    "quarterly": "node src/cli.js quarterly-report",
+    "migrate": "node src/cli.js migrate",
+    "setup": "node src/cli.js setup",
+    "status": "node src/cli.js status",
+    "config": "node src/cli.js config",
+    "web": "node src/web-server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3",
+    "@octokit/rest": "^20.1.1",
+    "@slack/web-api": "^7.3.4",
+    "axios": "^1.7.2",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "cors": "^2.8.5",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "fs-extra": "^11.2.0",
+    "googleapis": "^128.0.0",
+    "multer": "^2.0.2",
+    "node-jira-client": "^1.0.6",
+    "open": "^10.2.0"
+  },
+  "keywords": [
+    "journal",
+    "productivity",
+    "work-tracking",
+    "ai",
+    "slack",
+    "github",
+    "google-calendar",
+    "jira",
+    "automation",
+    "cli"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/ajournal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/ajournal/issues"
+  },
+  "homepage": "https://github.com/yourusername/ajournal#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true
+}

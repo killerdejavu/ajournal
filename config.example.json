@@ -1,0 +1,84 @@
+{
+  "integrations": {
+    "slack": {
+      "enabled": true,
+      "excludeChannels": ["random", "general", "announcements"],
+      "excludeChannelPatterns": ["test-*", "temp-*", "*-playground"],
+      "trackDMs": true,
+      "trackReactions": true,
+      "trackThreads": true,
+      "minMessageLength": 10,
+      "maxConversations": 10,
+      "rateLimitDelay": 1200
+    },
+    "github": {
+      "enabled": true,
+      "excludeRepos": [],
+      "excludeRepoPatterns": ["*-playground", "*-test", "dotfiles", "scratch-*"],
+      "trackPRsCreated": true,
+      "trackPRsReviewed": true,
+      "trackIssues": false,
+      "trackCommits": false
+    },
+    "gcal": {
+      "enabled": true,
+      "includeCalendars": ["your-email@company.com"],
+      "excludeCalendars": ["personal", "holidays", "Birthdays"],
+      "excludeCalendarPatterns": ["*personal*", "*birthday*", "*holiday*"],
+      "excludeEvents": ["Away", "Lunch"],
+      "excludeEventPatterns": ["*lunch*", "*away*"],
+      "minDuration": 15,
+      "trackAttendees": true,
+      "trackLocation": false
+    },
+    "jira": {
+      "enabled": false,
+      "protocol": "https",
+      "host": "your-company.atlassian.net",
+      "username": "your-email@company.com",
+      "apiToken": "${JIRA_API_TOKEN}",
+      "apiVersion": "2",
+      "strictSSL": true,
+      "trackCreated": true,
+      "trackUpdated": true,
+      "trackCommented": true,
+      "excludeProjects": [],
+      "excludeProjectPatterns": ["TEST-*", "TEMP-*"],
+      "includeProjects": [],
+      "maxResults": 100
+    }
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "summarizationPrompt": "Analyze the following work activities and create a concise, professional summary for a work journal. Focus on:\n- Key accomplishments and progress made\n- Important communications and decisions\n- Time allocation across different activities\n- Notable insights or blockers encountered\n\nFormat as bullet points under relevant categories. Keep it factual and actionable.",
+    "categorizeWork": true,
+    "includeMetrics": true,
+    "maxTokens": 1000
+  },
+  "journal": {
+    "format": "markdown",
+    "outputDir": "./data/journals",
+    "groupBy": "by-tool",
+    "includeMetrics": true,
+    "includeRawData": false,
+    "dateFormat": "yyyy-MM-dd",
+    "timeFormat": "HH:mm"
+  },
+  "sync": {
+    "lookbackDays": 1,
+    "maxRetries": 3,
+    "retryDelay": 1000,
+    "rateLimit": {
+      "slack": 50,
+      "github": 60,
+      "gcal": 100,
+      "jira": 200
+    }
+  },
+  "storage": {
+    "dataDir": "./data",
+    "syncStateFile": "./data/sync-state.json",
+    "rawDataDir": "./data/raw-data"
+  }
+}
