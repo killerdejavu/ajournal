@@ -1,6 +1,8 @@
 export const defaultConfig = {
   integrations: {
     slack: {
+      username: null, // Slack username to track (set during setup)
+      userId: null, // Slack user ID to track (set during setup)
       enabled: true,
       excludeChannels: ['random', 'general'],
       excludeChannelPatterns: ['test-*', 'temp-*'],
@@ -13,6 +15,7 @@ export const defaultConfig = {
       rateLimitDelay: 1200, // ~50 requests/minute (Tier 3 limits)
     },
     github: {
+      username: null, // GitHub username to track (set during setup)
       enabled: true,
       excludeRepos: [],
       excludeRepoPatterns: ['*-playground', '*-test'],
@@ -35,6 +38,7 @@ export const defaultConfig = {
       protocol: 'https',
       host: 'your-company.atlassian.net', // Your JIRA instance URL
       username: 'your-email@company.com', // Your JIRA username/email
+      reportUserName: 'your-member@company.com', // Your JIRA username/email
       apiToken: process.env.JIRA_API_TOKEN, // API token from env
       apiVersion: '2',
       strictSSL: true,

@@ -14,7 +14,8 @@ class JiraIntegration {
         username: this.config.username,
         password: this.config.apiToken,
         apiVersion: this.config.apiVersion || '2',
-        strictSSL: this.config.strictSSL !== false
+        strictSSL: this.config.strictSSL !== false,
+        reportUserName: this.config.reportUserName || this.config.username
       });
     }
   }
@@ -26,7 +27,7 @@ class JiraIntegration {
     }
 
     try {
-      console.log(`🎫 Syncing JIRA tickets for ${this.config.username}...`);
+      console.log(`🎫 Syncing JIRA tickets for ${this.config.reportUserName}...`);
       
       // Get current date and process day by day
       let currentDate = new Date(startDate);
@@ -68,9 +69,8 @@ class JiraIntegration {
     try {
       // Get tickets created by user on this date
       const createdTickets = await this.searchTickets(
-        `reporter = "${this.config.username}" AND created >= "${dateStr}" AND created < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
+        `reporter = "${this.config.reportUserName}" AND created >= "${dateStr}" AND created < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
       );
-      
       for (const ticket of createdTickets) {
         activities.push({
           timestamp: ticket.fields.created,
@@ -87,12 +87,13 @@ class JiraIntegration {
           description: ticket.fields.description ? ticket.fields.description.substring(0, 200) : ''
         });
       }
+      console.log(`Found ${createdTickets.length} tickets created on ${dateStr}`);
 
       // Get tickets assigned to user and updated on this date
       const updatedTickets = await this.searchTickets(
-        `assignee = "${this.config.username}" AND updated >= "${dateStr}" AND updated < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
+        `assignee = "${this.config.reportUserName}" AND updated >= "${dateStr}" AND updated < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
       );
-      
+
       for (const ticket of updatedTickets) {
         // Get the change history for this ticket
         const changelog = await this.getTicketChangelog(ticket.key, date);
@@ -120,17 +121,18 @@ class JiraIntegration {
           }
         }
       }
+      console.log(`Found ${updatedTickets.length} tickets updated on ${dateStr}`);
 
       // Get tickets where user was mentioned or commented
       const commentedTickets = await this.searchTickets(
-        `comment ~ "${this.config.username}" AND updated >= "${dateStr}" AND updated < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
+        `comment ~ "${this.config.reportUserName}" AND updated >= "${dateStr}" AND updated < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
       );
       
       for (const ticket of commentedTickets) {
         const comments = await this.getTicketComments(ticket.key, date);
         
         for (const comment of comments) {
-          if (comment.author.name === this.config.username) {
+          if (comment.author.name === this.config.reportUserName) {
             activities.push({
               timestamp: comment.created,
               type: 'comment_added',

@@ -9,7 +9,7 @@ class GitHubIntegration {
     this.octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
     });
-    this.username = null;
+    this.username = config.integrations.github.username || null;
   }
 
   async sync(startDate, endDate) {

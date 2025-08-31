@@ -7,8 +7,8 @@ class SlackSearchIntegration {
     this.config = config.integrations.slack;
     this.storage = storage;
     this.client = new WebClient(process.env.SLACK_USER_TOKEN);
-    this.userId = null;
-    this.username = null;
+    this.userId = config.integrations.slack.userId || null;
+    this.username = config.integrations.slack.username || null;
   }
 
   async sync(startDate, endDate) {
@@ -94,7 +94,7 @@ class SlackSearchIntegration {
     try {
       // For single day search, use 'on:' which works better
       const dateStr = format(startDate, 'yyyy-MM-dd');
-      const query = `from:${this.username} on:${dateStr}`;
+      const query = `from:@${this.username} on:${dateStr}`;
       console.log(`🔎 Search query: "${query}"`);
 
       // Search API has max limit of 100 per page
