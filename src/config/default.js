@@ -53,7 +53,7 @@ export const defaultConfig = {
   },
   ai: {
     provider: 'anthropic',
-    model: 'claude-3-sonnet-20240229',
+    model: 'claude-sonnet-5',
     summarizationPrompt: `Analyze the following work activities and create a concise, professional summary for a work journal. Focus on:
 - Key accomplishments and progress made
 - Important communications and decisions

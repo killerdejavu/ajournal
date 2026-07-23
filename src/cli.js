@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
-import { subDays, format, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, getMonth, getQuarter } from 'date-fns';
+import { subDays, addDays, addMonths, endOfDay, format, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, getMonth, getQuarter } from 'date-fns';
 
 import configManager from './config/config.js';
 import StorageService from './services/storage.js';
@@ -28,6 +28,8 @@ program
   .command('sync')
   .description('Sync data from all configured integrations')
   .option('-d, --days <number>', 'Number of days to sync (default: from config)', parseInt)
+  .option('-f, --from <date>', 'Sync from this date (YYYY-MM-DD); overrides --days')
+  .option('-t, --to <date>', 'Sync up to this date inclusive (YYYY-MM-DD, default: today)')
   .option('-i, --integration <type>', 'Sync only specific integration (slack|github|gcal|jira)')
   .action(async (options) => {
     try {
@@ -49,40 +51,42 @@ program
       await storage.init();
       
       const days = options.days || config.sync.lookbackDays;
-      const startDate = subDays(new Date(), days);
-      
+      const startDate = options.from ? new Date(options.from) : subDays(new Date(), days);
+      const endDate = options.to ? endOfDay(new Date(options.to)) : new Date();
+      console.log(chalk.blue(`📅 Sync range: ${format(startDate, 'yyyy-MM-dd')} → ${format(endDate, 'yyyy-MM-dd')}`));
+
       const integrations = [];
-      
+
       if (!options.integration || options.integration === 'slack') {
         if (config.integrations.slack.enabled) {
           integrations.push(new SlackSearchIntegration(config, storage));
         }
       }
-      
+
       if (!options.integration || options.integration === 'github') {
         if (config.integrations.github.enabled) {
           integrations.push(new GitHubIntegration(config, storage));
         }
       }
-      
+
       if (!options.integration || options.integration === 'gcal') {
         if (config.integrations.gcal.enabled) {
           integrations.push(new GCalIntegration(config, storage));
         }
       }
-      
+
       if (!options.integration || options.integration === 'jira') {
         if (config.integrations.jira.enabled) {
           integrations.push(new JiraIntegration(config, storage));
         }
       }
-      
+
       for (const integration of integrations) {
         console.log(chalk.yellow(`Syncing ${integration.name}...`));
-        await integration.sync(startDate, new Date());
+        await integration.sync(startDate, endDate);
         console.log(chalk.green(`✅ ${integration.name} sync completed`));
       }
-      
+
       console.log(chalk.green('✨ Sync process completed successfully!'));
     } catch (error) {
       console.error(chalk.red('❌ Sync failed:'), error.message);
@@ -95,6 +99,8 @@ program
   .description('Generate journal entries using AI')
   .option('-d, --date <date>', 'Generate for specific date (YYYY-MM-DD)')
   .option('-r, --range <days>', 'Generate for last N days', parseInt)
+  .option('-f, --from <date>', 'Generate for all dates from this date (YYYY-MM-DD)')
+  .option('-t, --to <date>', 'Generate up to this date inclusive (YYYY-MM-DD, default: today)')
   .action(async (options) => {
     try {
       console.log(chalk.blue('📝 Generating journal entries...'));
@@ -108,6 +114,11 @@ program
       
       if (options.date) {
         dates = [new Date(options.date)];
+      } else if (options.from) {
+        const end = options.to ? new Date(options.to) : new Date();
+        for (let d = new Date(options.from); d <= end; d = addDays(d, 1)) {
+          dates.push(new Date(d));
+        }
       } else if (options.range) {
         for (let i = 0; i < options.range; i++) {
           dates.push(subDays(new Date(), i));
@@ -374,7 +385,7 @@ Please provide a concise but comprehensive summary that would be valuable for te
         }]
       });
       
-      const weeklySummary = response.content[0].text;
+      const weeklySummary = aiService.extractText(response);
       
       // Create weekly report
       const reportContent = `# Weekly Report - ${format(startDate, 'MMM dd')} to ${format(endDate, 'MMM dd, yyyy')}\n\n${weeklySummary}\n\n---\n*Generated on ${new Date().toISOString()} by AJournal*\n`;
@@ -469,7 +480,7 @@ Please provide a strategic monthly summary that would be valuable for performanc
         }]
       });
       
-      const monthlySummary = response.content[0].text;
+      const monthlySummary = aiService.extractText(response);
       
       // Create monthly report
       const monthName = format(targetDate, 'MMMM yyyy');
@@ -572,7 +583,7 @@ Please provide a high-level quarterly summary suitable for executive reviews, pe
         }]
       });
       
-      const quarterlySummary = response.content[0].text;
+      const quarterlySummary = aiService.extractText(response);
       
       // Create quarterly report
       const quarterName = `Q${getQuarter(targetDate)} ${format(targetDate, 'yyyy')}`;
@@ -586,6 +597,101 @@ Please provide a high-level quarterly summary suitable for executive reviews, pe
       
     } catch (error) {
       console.error(chalk.red('❌ Quarterly report generation failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('yearly-report')
+  .description('Generate a yearly report (e.g. for annual appraisal) from monthly reports')
+  .option('-f, --from <month>', 'First month of the period (YYYY-MM)')
+  .option('-t, --to <month>', 'Last month of the period (YYYY-MM)')
+  .option('-n, --name <name>', 'Custom name for the report file')
+  .action(async (options) => {
+    try {
+      console.log(chalk.blue('📊 Generating yearly report...'));
+
+      const config = await configManager.load();
+      const storage = new StorageService(config);
+      const aiService = new AIService(config);
+
+      // Default period: the 12 full months ending last month
+      let endMonth = options.to
+        ? startOfMonth(new Date(options.to + '-01'))
+        : startOfMonth(subDays(startOfMonth(new Date()), 1));
+      let startMonth = options.from
+        ? startOfMonth(new Date(options.from + '-01'))
+        : addMonths(endMonth, -11);
+
+      if (startMonth > endMonth) {
+        throw new Error('--from month must not be after --to month');
+      }
+
+      const sections = [];
+      const missing = [];
+      for (let m = new Date(startMonth); m <= endMonth; m = addMonths(m, 1)) {
+        const monthStr = format(m, 'yyyy-MM');
+        const content = await storage.getReport('monthly', m, `monthly-report-${monthStr}.md`);
+        if (content) {
+          sections.push({ month: format(m, 'MMMM yyyy'), content });
+        } else {
+          missing.push(monthStr);
+        }
+      }
+
+      if (missing.length > 0) {
+        console.log(chalk.yellow(`⚠️ No monthly report found for: ${missing.join(', ')}`));
+        console.log(chalk.yellow('   Run "ajournal monthly-report -m YYYY-MM" for those months for full coverage.'));
+      }
+
+      if (sections.length === 0) {
+        console.log(chalk.red('❌ No monthly reports found for the period. Generate monthly reports first.'));
+        return;
+      }
+
+      const periodLabel = `${format(startMonth, 'MMM yyyy')} – ${format(endMonth, 'MMM yyyy')}`;
+      console.log(chalk.green(`Found ${sections.length} monthly reports for ${periodLabel}`));
+
+      const yearlyPrompt = `
+Create a comprehensive yearly work summary for an ANNUAL PERFORMANCE APPRAISAL, based on the monthly reports below. Focus on:
+
+1. **Executive Summary**: 3-5 sentence overview of the year's contribution and impact
+2. **Major Accomplishments**: The most significant deliverables and their business impact, roughly in order of importance
+3. **Project Portfolio**: Each substantial project/initiative worked on, its outcome, and the person's role in it
+4. **Technical Leadership & Growth**: Architecture decisions, hard problems solved, skills developed
+5. **Collaboration & Influence**: Mentoring, reviews, cross-team work, communication highlights
+6. **Process & Innovation**: Improvements to how the team works, tooling, automation
+7. **Challenges Overcome**: Significant obstacles and how they were handled
+8. **Metrics**: Any quantifiable measures across the year (PRs, reviews, tickets, meetings led) — aggregate them where the monthly reports include numbers
+9. **Themes & Trajectory**: Patterns across the year showing growth and increasing scope
+
+Be factual and specific — cite concrete projects, tickets, and outcomes from the reports. Avoid generic filler. Where months show a multi-month arc for one initiative, consolidate it into a single narrative.
+
+Monthly reports (${sections.length} months, ${periodLabel}):
+${sections.map(s => `=== ${s.month} ===\n${s.content}`).join('\n\n')}
+      `;
+
+      console.log(chalk.yellow('Generating AI-powered yearly summary...'));
+      const response = await aiService.client.messages.create({
+        model: aiService.config.model,
+        max_tokens: 8000,
+        messages: [{
+          role: 'user',
+          content: yearlyPrompt
+        }]
+      });
+
+      const yearlySummary = aiService.extractText(response);
+
+      const reportContent = `# Yearly Report - ${periodLabel}\n\n${yearlySummary}\n\n---\n*Generated on ${new Date().toISOString()} by AJournal from ${sections.length} monthly reports${missing.length ? ` (missing: ${missing.join(', ')})` : ''}*\n`;
+
+      const reportFileName = options.name || `yearly-report-${format(startMonth, 'yyyy-MM')}-to-${format(endMonth, 'yyyy-MM')}.md`;
+      const reportPath = await storage.saveYearlyReport(reportFileName, reportContent, endMonth);
+
+      console.log(chalk.green(`✨ Yearly report saved to: ${reportPath}`));
+
+    } catch (error) {
+      console.error(chalk.red('❌ Yearly report generation failed:'), error.message);
       process.exit(1);
     }
   });

@@ -50,7 +50,7 @@
   },
   "ai": {
     "provider": "anthropic",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-sonnet-5",
     "summarizationPrompt": "Analyze the following work activities and create a concise, professional summary for a work journal. Focus on:\n- Key accomplishments and progress made\n- Important communications and decisions\n- Time allocation across different activities\n- Notable insights or blockers encountered\n\nFormat as bullet points under relevant categories. Keep it factual and actionable.",
     "categorizeWork": true,
     "includeMetrics": true,

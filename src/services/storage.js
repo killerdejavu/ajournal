@@ -30,6 +30,7 @@ class StorageService {
     await fs.ensureDir(path.join(baseDir, 'reports', 'weekly'));
     await fs.ensureDir(path.join(baseDir, 'reports', 'monthly'));
     await fs.ensureDir(path.join(baseDir, 'reports', 'quarterly'));
+    await fs.ensureDir(path.join(baseDir, 'reports', 'yearly'));
   }
 
   getDailyJournalPath(date) {
@@ -238,6 +239,23 @@ class StorageService {
 
   async saveQuarterlyReport(fileName, content, date = new Date()) {
     return this.saveReport('quarterly', date, fileName, content);
+  }
+
+  async saveYearlyReport(fileName, content, date = new Date()) {
+    return this.saveReport('yearly', date, fileName, content);
+  }
+
+  async getReport(type, date, fileName) {
+    try {
+      const reportPath = this.getReportPath(type, date, fileName);
+      if (await fs.pathExists(reportPath)) {
+        return await fs.readFile(reportPath, 'utf8');
+      }
+      return null;
+    } catch (error) {
+      console.error(`Error reading ${type} report:`, error.message);
+      return null;
+    }
   }
 
   async getReportsForPeriod(type, year) {
