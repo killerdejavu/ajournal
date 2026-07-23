@@ -36,3 +36,6 @@ logs/
 
 # Optional eslint cache
 .eslintcache
+CONTEXT.md
+# Personal Claude Code task-tracking (contains private/company-specific content)
+.sessions/
