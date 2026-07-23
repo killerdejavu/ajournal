@@ -150,16 +150,21 @@ class GCalIntegration {
 
   async getCalendarEvents(calendar, startDate, endDate) {
     try {
-      const response = await this.calendar.events.list({
-        calendarId: calendar.id,
-        timeMin: startDate.toISOString(),
-        timeMax: endDate.toISOString(),
-        singleEvents: true,
-        orderBy: 'startTime',
-        maxResults: 2500,
-      });
-
-      const events = response.data.items || [];
+      const events = [];
+      let pageToken;
+      do {
+        const response = await this.calendar.events.list({
+          calendarId: calendar.id,
+          timeMin: startDate.toISOString(),
+          timeMax: endDate.toISOString(),
+          singleEvents: true,
+          orderBy: 'startTime',
+          maxResults: 2500,
+          pageToken,
+        });
+        events.push(...(response.data.items || []));
+        pageToken = response.data.nextPageToken;
+      } while (pageToken);
       
       return events
         .filter(event => this.shouldIncludeEvent(event))

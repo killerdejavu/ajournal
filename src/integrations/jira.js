@@ -28,7 +28,21 @@ class JiraIntegration {
 
     try {
       console.log(`🎫 Syncing JIRA tickets for ${this.config.reportUserName}...`);
-      
+
+      // Jira Cloud no longer exposes author.name (GDPR); resolve our accountId once.
+      // Also grab displayName — email strings don't resolve in JQL on this instance.
+      if (this.accountId === undefined) {
+        try {
+          const me = await this.client.getCurrentUser();
+          this.accountId = me.accountId || null;
+          this.displayName = me.displayName || null;
+        } catch (error) {
+          console.warn('⚠️ Could not resolve JIRA accountId:', error.message);
+          this.accountId = null;
+          this.displayName = null;
+        }
+      }
+
       // Get current date and process day by day
       let currentDate = new Date(startDate);
       const end = new Date(endDate);
@@ -69,7 +83,7 @@ class JiraIntegration {
     try {
       // Get tickets created by user on this date
       const createdTickets = await this.searchTickets(
-        `reporter = "${this.config.reportUserName}" AND created >= "${dateStr}" AND created < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
+        `reporter = currentUser() AND created >= "${dateStr}" AND created < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
       );
       for (const ticket of createdTickets) {
         activities.push({
@@ -91,7 +105,7 @@ class JiraIntegration {
 
       // Get tickets assigned to user and updated on this date
       const updatedTickets = await this.searchTickets(
-        `assignee = "${this.config.reportUserName}" AND updated >= "${dateStr}" AND updated < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
+        `assignee = currentUser() AND updated >= "${dateStr}" AND updated < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
       );
 
       for (const ticket of updatedTickets) {
@@ -125,14 +139,14 @@ class JiraIntegration {
 
       // Get tickets where user was mentioned or commented
       const commentedTickets = await this.searchTickets(
-        `comment ~ "${this.config.reportUserName}" AND updated >= "${dateStr}" AND updated < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
+        `(comment ~ "${this.displayName || this.config.reportUserName}" OR assignee = currentUser() OR reporter = currentUser()) AND updated >= "${dateStr}" AND updated < "${format(addDays(new Date(date), 1), 'yyyy-MM-dd')}"`
       );
       
       for (const ticket of commentedTickets) {
         const comments = await this.getTicketComments(ticket.key, date);
         
         for (const comment of comments) {
-          if (comment.author.name === this.config.reportUserName) {
+          if (this.isCommentByReportUser(comment)) {
             activities.push({
               timestamp: comment.created,
               type: 'comment_added',
@@ -161,26 +175,60 @@ class JiraIntegration {
     return activities;
   }
 
+  isCommentByReportUser(comment) {
+    const author = comment.author || {};
+    if (this.accountId && author.accountId) {
+      return author.accountId === this.accountId;
+    }
+    const reportUser = (this.config.reportUserName || '').toLowerCase();
+    return (author.emailAddress || '').toLowerCase() === reportUser ||
+      author.name === this.config.reportUserName;
+  }
+
   async searchTickets(jql) {
+    // Atlassian removed /rest/api/2/search (CHANGE-2046); node-jira-client still
+    // calls it, so hit the replacement /rest/api/3/search/jql directly.
     try {
-      const results = await this.client.searchJira(jql, {
-        expand: ['changelog'],
-        fields: [
-          'summary',
-          'status', 
-          'priority',
-          'assignee',
-          'reporter',
-          'created',
-          'updated',
-          'project',
-          'issuetype',
-          'description'
-        ],
-        maxResults: 100
-      });
-      
-      return results.issues || [];
+      const issues = [];
+      const auth = Buffer.from(`${this.config.username}:${this.config.apiToken}`).toString('base64');
+      let nextPageToken;
+
+      do {
+        const response = await fetch(`${this.config.protocol}://${this.config.host}/rest/api/3/search/jql`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jql,
+            fields: [
+              'summary',
+              'status',
+              'priority',
+              'assignee',
+              'reporter',
+              'created',
+              'updated',
+              'project',
+              'issuetype',
+              'description'
+            ],
+            maxResults: 100,
+            ...(nextPageToken ? { nextPageToken } : {}),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`${response.status} - ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        issues.push(...(data.issues || []));
+        nextPageToken = data.isLast ? undefined : data.nextPageToken;
+      } while (nextPageToken);
+
+      return issues;
     } catch (error) {
       console.error('Error searching JIRA tickets:', error.message);
       return [];

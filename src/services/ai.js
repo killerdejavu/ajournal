@@ -8,6 +8,15 @@ class AIService {
     });
   }
 
+  // The first content block isn't always text (e.g. thinking blocks on newer models)
+  extractText(response) {
+    const block = (response.content || []).find(b => b.type === 'text');
+    if (!block) {
+      throw new Error(`No text block in response (stop_reason: ${response.stop_reason})`);
+    }
+    return block.text;
+  }
+
   async summarizeActivities(activities, date) {
     try {
       const prompt = this.buildSummarizationPrompt(activities, date);
@@ -23,7 +32,7 @@ class AIService {
         ]
       });
 
-      return response.content[0].text;
+      return this.extractText(response);
     } catch (error) {
       console.error('AI summarization error:', error.message);
       return this.fallbackSummary(activities, date);
@@ -111,7 +120,7 @@ Example format:
 
       const response = await this.client.messages.create({
         model: this.config.model,
-        max_tokens: 1000,
+        max_tokens: 2500,
         messages: [
           {
             role: 'user',
@@ -121,7 +130,7 @@ Example format:
       });
 
       // Extract JSON from the response text
-      const responseText = response.content[0].text;
+      const responseText = this.extractText(response);
       let jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('No JSON found in response');
@@ -178,7 +187,7 @@ Provide actionable insights in 2-3 bullet points.`;
         ]
       });
 
-      return response.content[0].text;
+      return this.extractText(response);
     } catch (error) {
       console.error('AI insights error:', error.message);
       return null;

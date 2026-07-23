@@ -71,6 +71,20 @@ class GitHubIntegration {
     }
   }
 
+  async paginatedSearch(q, sort) {
+    // Search API caps at 1000 results per query; paginate up to that limit
+    const items = await this.octokit.paginate(this.octokit.rest.search.issuesAndPullRequests, {
+      q,
+      sort,
+      order: 'desc',
+      per_page: 100,
+    });
+    if (items.length >= 1000) {
+      console.warn(`⚠️ GitHub search hit the 1000-result cap for query: ${q} — split the sync into smaller date ranges`);
+    }
+    return items;
+  }
+
   async getPRsCreated(startDate, endDate) {
     try {
       const prs = [];
@@ -78,14 +92,12 @@ class GitHubIntegration {
       const formattedEnd = endDate.toISOString().split('T')[0];
       
       // Search for PRs created by the user in the date range
-      const { data } = await this.octokit.rest.search.issuesAndPullRequests({
-        q: `author:${this.username} type:pr created:${formattedStart}..${formattedEnd}`,
-        sort: 'created',
-        order: 'desc',
-        per_page: 100,
-      });
+      const items = await this.paginatedSearch(
+        `author:${this.username} type:pr created:${formattedStart}..${formattedEnd}`,
+        'created'
+      );
 
-      for (const pr of data.items) {
+      for (const pr of items) {
         prs.push({
           type: 'pr_created',
           repository: pr.repository_url.split('/').slice(-2).join('/'),
@@ -118,14 +130,12 @@ class GitHubIntegration {
       const formattedStart = startDate.toISOString().split('T')[0];
       const formattedEnd = endDate.toISOString().split('T')[0];
       
-      const { data } = await this.octokit.rest.search.issuesAndPullRequests({
-        q: `commenter:${this.username} type:pr updated:${formattedStart}..${formattedEnd}`,
-        sort: 'updated',
-        order: 'desc',
-        per_page: 100,
-      });
+      const items = await this.paginatedSearch(
+        `commenter:${this.username} type:pr updated:${formattedStart}..${formattedEnd}`,
+        'updated'
+      );
 
-      for (const pr of data.items) {
+      for (const pr of items) {
         // Skip PRs created by the same user
         if (pr.user.login === this.username) continue;
 
@@ -176,14 +186,12 @@ class GitHubIntegration {
       const formattedEnd = endDate.toISOString().split('T')[0];
       
       // Search for issues where user has commented or been assigned
-      const { data } = await this.octokit.rest.search.issuesAndPullRequests({
-        q: `involves:${this.username} type:issue updated:${formattedStart}..${formattedEnd}`,
-        sort: 'updated',
-        order: 'desc',
-        per_page: 100,
-      });
+      const items = await this.paginatedSearch(
+        `involves:${this.username} type:issue updated:${formattedStart}..${formattedEnd}`,
+        'updated'
+      );
 
-      for (const issue of data.items) {
+      for (const issue of items) {
         issues.push({
           type: 'issue_activity',
           repository: issue.repository_url.split('/').slice(-2).join('/'),
@@ -208,47 +216,36 @@ class GitHubIntegration {
   async getCommits(startDate, endDate) {
     try {
       const commits = [];
-      const formattedStart = startDate.toISOString();
-      const formattedEnd = endDate.toISOString();
-      
-      // This is complex as we need to search across all repos the user has access to
-      // For now, we'll get user's repositories and check commits in each
-      const { data: repos } = await this.octokit.rest.repos.listForAuthenticatedUser({
-        type: 'all',
-        sort: 'updated',
+      const formattedStart = startDate.toISOString().split('T')[0];
+      const formattedEnd = endDate.toISOString().split('T')[0];
+
+      // Commit search only indexes each repo's default branch — which is exactly
+      // the direct-to-main pushes that PR tracking misses. merge:false drops
+      // merge commits.
+      const items = await this.octokit.paginate(this.octokit.rest.search.commits, {
+        q: `author:${this.username} author-date:${formattedStart}..${formattedEnd} merge:false`,
+        sort: 'author-date',
+        order: 'desc',
         per_page: 100,
       });
+      if (items.length >= 1000) {
+        console.warn(`⚠️ GitHub commit search hit the 1000-result cap — split the sync into smaller date ranges`);
+      }
 
-      for (const repo of repos.slice(0, 20)) { // Limit to avoid rate limits
-        try {
-          const { data: repoCommits } = await this.octokit.rest.repos.listCommits({
-            owner: repo.owner.login,
-            repo: repo.name,
-            author: this.username,
-            since: formattedStart,
-            until: formattedEnd,
-            per_page: 100,
-          });
+      for (const item of items) {
+        const firstLine = (item.commit.message || '').split('\n')[0];
+        // Squash-merged PR commits carry a "(#N)" suffix and are already
+        // tracked as pr_created — keep only genuine direct pushes.
+        if (/\(#\d+\)/.test(firstLine)) continue;
 
-          for (const commit of repoCommits) {
-            commits.push({
-              type: 'commit',
-              repository: repo.full_name,
-              sha: commit.sha,
-              message: commit.commit.message,
-              url: commit.html_url,
-              timestamp: commit.commit.author.date,
-              additions: commit.stats?.additions || 0,
-              deletions: commit.stats?.deletions || 0,
-              totalChanges: commit.stats?.total || 0,
-            });
-          }
-        } catch (commitError) {
-          // Skip repositories we can't access
-          if (commitError.status !== 409 && commitError.status !== 404) {
-            console.error(`Error fetching commits from ${repo.full_name}:`, commitError.message);
-          }
-        }
+        commits.push({
+          type: 'commit',
+          repository: item.repository.full_name,
+          sha: item.sha,
+          message: firstLine,
+          url: item.html_url,
+          timestamp: item.commit.author.date,
+        });
       }
 
       return commits;
