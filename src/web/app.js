@@ -255,7 +255,7 @@ function formatSyncStatus(status) {
     const integrations = ['slack', 'github', 'gcal', 'jira'];
     
     return integrations.map(integration => {
-        const timestamp = status[integration];
+        const timestamp = status[integration]?.lastSync;
         if (timestamp) {
             return `<div><strong>${integration.toUpperCase()}:</strong> ${formatDateTime(timestamp)}</div>`;
         }
